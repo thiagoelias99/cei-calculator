@@ -21,7 +21,6 @@ export default function InputForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values)
       form.reset()
     } catch (error) {
       throw error

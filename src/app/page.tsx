@@ -1,6 +1,7 @@
 'use client'
 
 import { processOrders } from '@/actions/process-orders'
+import { processStocks } from '@/actions/process-stocks'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,7 +14,6 @@ export default function Home() {
 
   async function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    console.log('Form submitted')
 
     const form = document.getElementById('formUpload')
     const formData = new FormData(form as HTMLFormElement)
@@ -26,8 +26,9 @@ export default function Home() {
     }
 
     const processedOrders = await processOrders(JSON.stringify(csvFilesContent))
+    const processedStocks = await processStocks(processedOrders)
 
-    const parsedData: CsvItem[] = JSON.parse(processedOrders)
+    const parsedData: CsvItem[] = JSON.parse(processedStocks)
     console.log(parsedData)
   }
 

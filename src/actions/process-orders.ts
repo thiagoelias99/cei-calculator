@@ -2,9 +2,9 @@
 
 // Filter csv items by category, aplly some business rules and return the processed orders ordered by date ascending
 
-import { CsvItem, CsvItemCategoryEnum } from '@/models/csv-file'
+import { CsvItem, CsvItemCategoryEnum, CsvItemTypeEnum } from '@/models/csv-file'
 
-export async function processOrders(data: string) {
+export async function processOrders(data: string): Promise<string> {
   // Parse data
   const parsedData: CsvItem[] = JSON.parse(data)
 
@@ -71,10 +71,10 @@ export async function processOrders(data: string) {
     if (processedItem.ticker === 'MGLU3' && !processedItem.broker.startsWith('CLEAR')) {
       return
     }
-
+    
     return {
-      stockTicker: processedItem.ticker,
-      orderType: processedItem.type === 'Credito' || processedItem.category === CsvItemCategoryEnum.SUBSCRIPTION ? 'BUY' : 'SELL',
+      ticker: processedItem.ticker,
+      type: processedItem.type === 'Credito' || processedItem.category === CsvItemCategoryEnum.SUBSCRIPTION ? CsvItemTypeEnum.CREDIT : CsvItemTypeEnum.DEBIT,
       quantity: processedItem.quantity,
       price: processedItem.price,
       date: processedItem.date,
