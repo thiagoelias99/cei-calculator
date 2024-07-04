@@ -5,28 +5,32 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CsvItem, CsvItemCategoryEnum, CsvItemTypeEnum } from '@/models/csv-file'
 import { FileUpIcon, Github, Linkedin, Mail } from 'lucide-react'
-import { FormEvent, useState } from 'react'
+import { useState } from 'react'
 
 export default function Home() {
-  const [csvFileName, setCsvFileName] = useState<string | null>(null)
+  const [csvFileNames, setCsvFileNames] = useState<string[] | null>(null)
 
-  async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     console.log('Form submitted')
 
     const form = document.getElementById('formUpload')
     const formData = new FormData(form as HTMLFormElement)
-    const csvFile = formData.get('csvFile')
+    const csvFiles = formData.getAll('csvFile')
 
-    const content = await normalizeCsvFile(csvFile as Blob)
+    const csvFilesContent: CsvItem[] = []
+    for (const file of csvFiles) {
+      const content = await normalizeCsvFile(file as Blob)
+      csvFilesContent.push(...content as CsvItem[])
+    }
 
-    console.log(content)
+    console.log(csvFilesContent)
   }
 
   return (
     <main className='w-full h-full px-4 py-8 flex flex-col justify-start items-start gap-4'>
-      <h1 className='w-full text-3xl text-foreground font-bold text-center'> Imagem para Texto</h1>
-      <span className='w-full text-base text-muted text-center'>Envie uma imagem para gerar descrições alternativas dela</span>
+      <h1 className='w-full text-3xl text-foreground font-bold text-center'> Calculadora CEI</h1>
+      <span className='w-full text-base text-muted text-center'>Envie arquivos exportados do CEI para calcular a posição e preço médio de ações</span>
       {true && (
         <div className='w-full flex flex-col justify-center items-center gap-4'>
           <form
@@ -42,7 +46,7 @@ export default function Home() {
               >
                 <div className='flex flex-col justify-center items-center gap-4'>
                   <FileUpIcon className="h-20 w-20 stroke-muted stroke-1" />
-                  <p className='text-base text-muted'>Toque para enviar um arquivo</p>
+                  <p className='text-base text-muted'>Toque para enviar arquivos</p>
                 </div>
               </Label>
               <Input
@@ -50,20 +54,24 @@ export default function Home() {
                 name='csvFile'
                 type="file"
                 accept="csv"
+                multiple
                 required
                 className="hidden"
                 onChange={(event) => {
-                  const file = (event.target as HTMLInputElement)!.files![0]
-                  if (file) {
-                    setCsvFileName(file.name)
+                  const files = (event.target as HTMLInputElement)!.files
+                  if (files) {
+                    // Supondo que você queira armazenar os nomes dos arquivos em um estado
+                    const fileNames = Array.from(files).map(file => file.name)
+                    setCsvFileNames(fileNames) // Você precisará ajustar o estado para suportar vários arquivos
                   }
                 }}
               />
             </div>
-            {csvFileName && (
-              <p className='w-full text-base text-muted text-center'>Arquivo selecionado: {csvFileName}</p>
+            {csvFileNames && (
+              // <p className='w-full text-base text-muted text-center'>Arquivo selecionado: {csvFileName}</p>
+              <p className='w-full text-base text-muted text-center'>Arquivos selecionados: {csvFileNames.join(', ')}</p>
             )}
-            {csvFileName && (
+            {csvFileNames && (
               <Button type='submit' className='w-full mt-4'>Analisar</Button>
             )}
 
