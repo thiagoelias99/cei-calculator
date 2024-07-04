@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CsvItem, CsvItemCategoryEnum, CsvItemTypeEnum } from '@/models/csv-file'
-import { Github, ImageUp, Linkedin, Mail } from 'lucide-react'
-import { FormEvent } from 'react'
+import { FileUpIcon, Github, Linkedin, Mail } from 'lucide-react'
+import { FormEvent, useState } from 'react'
 
 export default function Home() {
+  const [csvFileName, setCsvFileName] = useState<string | null>(null)
+
   async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     console.log('Form submitted')
@@ -30,7 +32,7 @@ export default function Home() {
           <form
             id="formUpload"
             onSubmit={(e) => handleFormSubmit(e)}
-            className='w-full flex flex-col justify-start items-start gap-4 sm:flex-row sm:justify-center sm:items-center'
+            className='w-full max-w-[480px] flex flex-col justify-start items-start gap-4'
           >
             {/* CSV Input */}
             <div className="flex w-full mt-2 justify-center items-center gap-1.5">
@@ -39,7 +41,7 @@ export default function Home() {
                 className={'w-full h-[280px] flex flex-row justify-center items-center border-[1.5px] rounded-xl cursor-pointer'}
               >
                 <div className='flex flex-col justify-center items-center gap-4'>
-                  <ImageUp className="h-20 w-20 stroke-muted stroke-1" />
+                  <FileUpIcon className="h-20 w-20 stroke-muted stroke-1" />
                   <p className='text-base text-muted'>Toque para enviar um arquivo</p>
                 </div>
               </Label>
@@ -50,9 +52,21 @@ export default function Home() {
                 accept="csv"
                 required
                 className="hidden"
+                onChange={(event) => {
+                  const file = (event.target as HTMLInputElement)!.files![0]
+                  if (file) {
+                    setCsvFileName(file.name)
+                  }
+                }}
               />
-              <Button type='submit' className='w-full mt-4'>Analisar</Button>
             </div>
+            {csvFileName && (
+              <p className='w-full text-base text-muted text-center'>Arquivo selecionado: {csvFileName}</p>
+            )}
+            {csvFileName && (
+              <Button type='submit' className='w-full mt-4'>Analisar</Button>
+            )}
+
           </form>
         </div>
       )}
