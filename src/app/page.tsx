@@ -2,15 +2,18 @@
 
 import { processOrders } from '@/actions/process-orders'
 import { processStocks } from '@/actions/process-stocks'
+import StocksTable from '@/components/stock-table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CsvItem, CsvItemCategoryEnum, CsvItemTypeEnum } from '@/models/csv-file'
+import { Stock } from '@/models/stock'
 import { FileUpIcon, Github, Linkedin, Mail } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Home() {
   const [csvFileNames, setCsvFileNames] = useState<string[] | null>(null)
+  const [stocks, setStocks] = useState<Stock[] | null>(null)
 
   async function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -28,8 +31,9 @@ export default function Home() {
     const processedOrders = await processOrders(JSON.stringify(csvFilesContent))
     const processedStocks = await processStocks(processedOrders)
 
-    const parsedData: CsvItem[] = JSON.parse(processedStocks)
+    const parsedData: Stock[] = JSON.parse(processedStocks)
     console.log(parsedData)
+    setStocks(parsedData)
   }
 
   return (
@@ -65,15 +69,13 @@ export default function Home() {
                 onChange={(event) => {
                   const files = (event.target as HTMLInputElement)!.files
                   if (files) {
-                    // Supondo que você queira armazenar os nomes dos arquivos em um estado
                     const fileNames = Array.from(files).map(file => file.name)
-                    setCsvFileNames(fileNames) // Você precisará ajustar o estado para suportar vários arquivos
+                    setCsvFileNames(fileNames)
                   }
                 }}
               />
             </div>
             {csvFileNames && (
-              // <p className='w-full text-base text-muted text-center'>Arquivo selecionado: {csvFileName}</p>
               <p className='w-full text-base text-muted text-center'>Arquivos selecionados: {csvFileNames.join(', ')}</p>
             )}
             {csvFileNames && (
@@ -81,6 +83,12 @@ export default function Home() {
             )}
 
           </form>
+
+          {/* Stock Table */}
+          <StocksTable
+            stocks={stocks}
+            className='w-full max-w-[1280px] mx-auto'
+          />
         </div>
       )}
 
