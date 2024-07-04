@@ -1,5 +1,6 @@
 'use client'
 
+import { processOrders } from '@/actions/process-orders'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,7 +25,10 @@ export default function Home() {
       csvFilesContent.push(...content as CsvItem[])
     }
 
-    console.log(csvFilesContent)
+    const processedOrders = await processOrders(JSON.stringify(csvFilesContent))
+
+    const parsedData: CsvItem[] = JSON.parse(processedOrders)
+    console.log(parsedData)
   }
 
   return (
