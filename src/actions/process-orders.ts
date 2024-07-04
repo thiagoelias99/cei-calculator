@@ -20,60 +20,71 @@ export async function processOrders(data: string) {
 
   // Process orders
   const processedOrders = allStocks.map((item) => {
-    // Process grouping
-    if (item.category === CsvItemCategoryEnum.GROUPING) {
-      // Subtract 2 hour from date
-      try {
-        new Date(item.date).setHours(new Date(item.date).getHours() - 2)
+    let processedItem: CsvItem = item
 
-      } catch (error) {
-        console.error('Error subtracting 2 hours from date', error)
-        console.log('Item:', item)
-      }
+    // Process grouping
+    if (processedItem.category === CsvItemCategoryEnum.GROUPING) {
+      // Subtract 2 hour from date
+      new Date(processedItem.date).setHours(new Date(processedItem.date).getHours() - 2)
     }
 
     // Process ITSA4 bonification
-    if (item.ticker === 'ITSA4' && item.category === CsvItemCategoryEnum.BONUS) {
+    if (processedItem.ticker === 'ITSA4' && processedItem.category === CsvItemCategoryEnum.BONUS) {
       // If date is between 2021-12-20 and 2021-12-23 set the price to 18.89
-      if (item.date >= new Date('2021-12-20') && item.date <= new Date('2021-12-23')) {
-        item.price = 18.89
-        item.grossValue = item.quantity * item.price
+      if (processedItem.date >= new Date('2021-12-20') && processedItem.date <= new Date('2021-12-23')) {
+        processedItem.price = 18.89
+        processedItem.grossValue = processedItem.quantity * processedItem.price
       }
       // If date is between 2022-11-10 and 2022-11-16 set the price to 13,65
-      if (item.date >= new Date('2022-11-10') && item.date <= new Date('2022-11-16')) {
-        item.price = 13.65
-        item.grossValue = item.quantity * item.price
+      if (processedItem.date >= new Date('2022-11-10') && processedItem.date <= new Date('2022-11-16')) {
+        processedItem.price = 13.65
+        processedItem.grossValue = processedItem.quantity * processedItem.price
       }
       // If date is between 2023-11-27 and 2023-12-02 set the price to 17,92
-      if (item.date >= new Date('2023-11-27') && item.date <= new Date('2023-12-02')) {
-        item.price = 17.92
-        item.grossValue = item.quantity * item.price
+      if (processedItem.date >= new Date('2023-11-27') && processedItem.date <= new Date('2023-12-02')) {
+        processedItem.price = 17.92
+        processedItem.grossValue = processedItem.quantity * processedItem.price
       }
     }
 
     // Process MXRF12 subscription
-    if (item.ticker === 'MXRF12' && item.category === CsvItemCategoryEnum.SUBSCRIPTION) {
+    if (processedItem.ticker === 'MXRF12' && processedItem.category === CsvItemCategoryEnum.SUBSCRIPTION) {
       // If date is between 2023-12-10 and 2023-12-16 set the price to 10.29
-      if (item.date >= new Date('2023-12-10') && item.date <= new Date('2023-12-16')) {
-        item.price = 10.29
-        item.grossValue = item.quantity * item.price
+      if (processedItem.date >= new Date('2023-12-10') && processedItem.date <= new Date('2023-12-16')) {
+        processedItem.price = 10.29
+        processedItem.grossValue = processedItem.quantity * processedItem.price
       }
     }
 
+    // Substitute XXXX12, XXXX13, XXXX14, XXXX15 to XXXX11 (FIIs)
+    processedItem.ticker = processedItem.ticker.replace(/\d{2}$/, '11')
+
+    // Substitute VIVT3 to VIVT4
+    processedItem.ticker = processedItem.ticker.replace('VIVT3', 'VIVT4')
+
+    // Ignore IVVB11 from Clear Broker
+    if (processedItem.broker.startsWith('CLEAR') && processedItem.ticker === 'IVVB11') {
+      return
+    }
+
+    // Consider MGLU3 only from Clear Broker
+    if (processedItem.ticker === 'MGLU3' && !processedItem.broker.startsWith('CLEAR')) {
+      return
+    }
+
     return {
-      stockTicker: item.ticker,
-      orderType: item.type === 'Credito' || item.category === CsvItemCategoryEnum.SUBSCRIPTION ? 'BUY' : 'SELL',
-      quantity: item.quantity,
-      price: item.price,
-      date: item.date,
-      companyName: item.institution,
-      orderGroup: item.category,
-      grossValue: item.grossValue,
-      broker: item.broker
+      stockTicker: processedItem.ticker,
+      orderType: processedItem.type === 'Credito' || processedItem.category === CsvItemCategoryEnum.SUBSCRIPTION ? 'BUY' : 'SELL',
+      quantity: processedItem.quantity,
+      price: processedItem.price,
+      date: processedItem.date,
+      companyName: processedItem.institution,
+      orderGroup: processedItem.category,
+      grossValue: processedItem.grossValue,
+      broker: processedItem.broker
     }
   })
 
   // Return processed orders sorted by date ascending as Json
-  // return processedOrders.sort((a, b) => a.date.getTime() - b.date.getTime())
-  return JSON.stringify(processedOrders.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+  return JSON.stringify(processedOrders.filter(item => item).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
 }
